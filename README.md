@@ -1,2 +1,7 @@
-# Simply_Python_JDB
-a JSON Database with Python. It's just like MySQL ( a litle bit ) and ofc easy to use :)
+# Simply Python JDB
+---
+I made this just for personal purpose. but I think it's OK to share it.
+
+it's a simple database with python json (inspired by MYSQL)
+
+well OK thanks for wasting your time...
