@@ -112,7 +112,7 @@ class SimplyJSONDB(object):
             self.insert(into, i)
         return "Insert {} Success".format(datas)
 
-    def fetch_all(self, table:str, limit:int):
+    def fetch_all(self, table:str, limit:int=0):
         theDB = openDb(self.db_name)
         if limit == 0:
             return theDB[table]
@@ -121,18 +121,35 @@ class SimplyJSONDB(object):
 
     def fetch_one(self, table:str):
         theDB = openDb(self.db_name)
-        return theDB[table][0]
+        try:
+            return theDB[table][0]
+        except:
+            return None
 
     def fetch_all_filter(self, table:str, where:str, limit:int=0):
         theDB = openDb(self.db_name)
-        theFilter = where.split("=")
+        key_ = where.split("=")[0]
+        val_ = where.split("=")[1]
+        if theDB["edata"][table][key_]["data_type"] == "int":
+            val_ = int(val_)
+        elif theDB["edata"][table][key_]["data_type"] == "bool":
+            if val_.lower() == "false":
+                val_ = False
+            elif val_.lower() == "true":
+                val_ = True
+        else:
+            val_ = val_
         ff_ = []
         for i in theDB[table]:
             if self.case_sensitive == True:
-                if i[theFilter[0]] == theFilter[1]:
-                    ff_.append(i)
+                try:
+                    if i[key_].lower() == val_.lower():
+                        ff_.append(i)
+                except:
+                    if i[key_] == val_:
+                        ff_.append(i)
             else:
-                if i[theFilter[0]].lower() == theFilter[1].lower():
+                if i[key_] == val_:
                     ff_.append(i)
         if limit == 0:
             return ff_
@@ -141,18 +158,35 @@ class SimplyJSONDB(object):
 
     def fetch_one_filter(self, table:str, where:str):
         the_data = self.fetch_all_filter(table, where, 2)
-        return the_data[0]
+        try:
+            return the_data[0]
+        except:
+            return None
 
     def filter_like(self, table:str, where:str, limit:int = 0):
         theDB = openDb(self.db_name)
-        theFilter = where.split(" like ")
+        key_ = where.split("=")[0]
+        val_ = where.split("=")[1]
+        if theDB["edata"][table][key_]["data_type"] == "int":
+            val_ = int(val_)
+        elif theDB["edata"][table][key_]["data_type"] == "bool":
+            if val_.lower() == "false":
+                val_ = False
+            elif val_.lower() == "true":
+                val_ = True
+        else:
+            val_ = val_
         ff_ = []
-        for i in theDB[table]:
+        for i in theDB:
             if self.case_sensitive == True:
-                if theFilter[1] in i[theFilter[0]]:
-                    ff_.append(i)
+                try:
+                    if val_.lower() in i[key_].lower():
+                        ff_.append(i)
+                except:
+                    if val_ in i[key_]:
+                        ff_.append(i)
             else:
-                if theFilter[1].lower() in i[theFilter[0]].lower():
+                if val_ in i[key_]:
                     ff_.append(i)
         if limit == 0:
             return ff_
@@ -177,14 +211,55 @@ class SimplyJSONDB(object):
     def update(self, table:str, set_:str, where:str):
         theDB = openDb(self.db_name)
         theTable =theDB[table]
-        setTo = set_.split("=")
-        theFilter = where.split("=")
-        for i in theTable:
-            if self.case_sensitive == True:
-                if i[theFilter[0]] == theFilter[1]:
-                    i[setTo[0]] = setTo[1]
+        skey_ = set_.split("=")[0]
+        sval_ = set_.split("=")[1]
+        gkey_ = where.split("=")[0]
+        gval_ = where.split("=")[1]
+        if theDB["edata"][table][gkey_]["data_type"] == "bool":
+            if gval_.lower() == "true":
+                gval_ == True
+            elif gval_.lower() == "false":
+                gval_ == False
             else:
-                if i[theFilter[0]].lower() == theFilter[1].lower():
-                    i[setTo[0]] = setTo[1]
+                return "Boolean must be True or False"
+        elif theDB["edata"][table][gkey_]["data_type"] == "int":
+            try:
+                gval_ = int(gval_)
+            except Exception as e:
+                raise e
+        if theDB["edata"][table][skey_]["data_type"] == "bool":
+            if sval_.lower() == "true":
+                sval_ == True
+            elif sval_.lower() == "false":
+                sval_ == False
+            else:
+                return "Boolean must be True or False"
+        elif theDB["edata"][table][skey_]["data_type"] == "int":
+            try:
+                sval_ = int(sval_)
+            except Exception as e:
+                raise e
+        for i in theDB[table]:
+            if self.case_sensitive == False:
+                try:
+                    if i[gkey_].lower() == gval_.lower():
+                        i[skey_] = sval_
+                except:
+                    if i[gkey_] == gval_:
+                        i[skey_] = sval_
+            else:
+                if i[gkey_] == gval_:
+                    i[skey_] = sval_
         saveDb(theDB, self.db_name)
         return "ok"
+
+    def add_column(self, table:str, column_name:str, default_value=None, data_type:str="str"):
+        theDB = openDb(self.db_name)
+        theDB["edata"][table][column_name] = {"default_value": default_value, "data_type": data_type}
+        saveDb(theDB, self.db_name)
+        return "ok"
+
+    def printDB(self, pretyfy=False):
+        if pretyfy:
+            return self.pretyfy(openDb(self.db_name))
+        return openDb(self.db_name)
