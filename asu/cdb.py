@@ -217,9 +217,9 @@ class SimplyJSONDB(object):
         gval_ = where.split("=")[1]
         if theDB["edata"][table][gkey_]["data_type"] == "bool":
             if gval_.lower() == "true":
-                gval_ == True
+                gval_ = True
             elif gval_.lower() == "false":
-                gval_ == False
+                gval_ = False
             else:
                 return "Boolean must be True or False"
         elif theDB["edata"][table][gkey_]["data_type"] == "int":
@@ -229,11 +229,11 @@ class SimplyJSONDB(object):
                 raise e
         if theDB["edata"][table][skey_]["data_type"] == "bool":
             if sval_.lower() == "true":
-                sval_ == True
+                sval_ = True
             elif sval_.lower() == "false":
-                sval_ == False
+                sval_ = False
             else:
-                return "Boolean must be True or False"
+                print("Boolean must be True or False")
         elif theDB["edata"][table][skey_]["data_type"] == "int":
             try:
                 sval_ = int(sval_)
